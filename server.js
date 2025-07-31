@@ -1,55 +1,56 @@
-'use strict';
-require('dotenv').config();
-const express     = require('express');
-const bodyParser  = require('body-parser');
-const cors        = require('cors');
-
-const apiRoutes         = require('./routes/api.js');
-const fccTestingRoutes  = require('./routes/fcctesting.js');
-const runner            = require('./test-runner');
-
+dorequire('dotenv').config(); // Carrega as variáveis de ambiente do .env
+const express = require('express');
 const app = express();
+const helmet = require('helmet');
+const cors = require('cors'); // Vamos incluir por enquanto, mas pode ser ajustado.
+const apiRoutes = require('./routes/api.js'); // Importa suas rotas
 
-app.use('/public', express.static(process.cwd() + '/public'));
+// Configuração do Helmet para segurança, incluindo CSP
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"], // Permite scripts apenas do seu próprio domínio
+    styleSrc: ["'self'"], // Permite estilos apenas do seu próprio domínio
+    imgSrc: ["'self'", "data:"], // Permite imagens do próprio domínio e dados base64 (muitas vezes necessário)
+    connectSrc: ["'self'"], // Crucial para que o frontend possa se conectar à API no mesmo domínio
+    formAction: ["'self'"], // Permite submissões de formulário para o próprio domínio
+    objectSrc: ["'none'"], // Não permite objetos (Flash, Java applets)
+    // Removida: upgradeInsecureRequests, pois pode causar problemas em ambientes HTTP de teste do FCC
+  },
+}));
 
-app.use(cors({origin: '*'})); //For FCC testing purposes only
+// Configuração do CORS (para permitir que o frontend acesse a API, pode precisar de ajustes específicos para produção)
+app.use(cors({
+  origin: '*', // Permite todas as origens por enquanto. Em produção, você deve restringir isso.
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // Se você for lidar com cookies ou autenticação
+  optionsSuccessStatus: 204
+}));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware para parsear o corpo das requisições (se for usar POST, PUT, etc.)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-//Index page (static HTML)
-app.route('/')
-  .get(function (req, res) {
-    res.sendFile(process.cwd() + '/views/index.html');
-  });
+// Sirva arquivos estáticos (se você tiver um frontend em HTML, CSS, JS no diretório 'public')
+// Por enquanto, vamos criar uma pasta 'public' para o frontend de exemplo no próximo passo.
+app.use(express.static('public'));
 
-//For FCC testing purposes
-fccTestingRoutes(app);
-
-//Routing for API 
-apiRoutes(app);  
-    
-//404 Not Found Middleware
-app.use(function(req, res, next) {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
+// Rota de exemplo para verificar se o servidor está funcionando
+// Esta rota vai tentar enviar o arquivo index.html da pasta public.
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
 });
 
-//Start our server and tests!
-const listener = app.listen(process.env.PORT || 3000, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
-  if(process.env.NODE_ENV==='test') {
-    console.log('Running Tests...');
-    setTimeout(function () {
-      try {
-        runner.run();
-      } catch(e) {
-        console.log('Tests are not valid:');
-        console.error(e);
-      }
-    }, 3500);
+// Porta do servidor
+apiRoutes(app); // Passa a instância do 'app' para suas rotas
+const PORT = process.env.PORT || 3000;
+
+// Inicia o servidor
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+  if (process.env.NODE_ENV === 'test') {
+    console.log('Ambiente de teste ativo.');
   }
 });
 
-module.exports = app; //for testing
+module.exports = app; // Exporta o app para uso em testes
