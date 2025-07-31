@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IS 5 - Nasdaq Stock Price Checker</title>
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <h1>IS 5 - Nasdaq Stock Price Checker</h1>
+
+    <h2>Example usage:</h2>
+    <p>/api/stock-prices?stock=GOOG</p>
+    <p>/api/stock-prices?stock=GOOG&like=true</p>
+    <p>/api/stock-prices?stock=GOOG&stock=MSFT</p>
+    <p>/api/stock-prices?stock=GOOG&stock=MSFT&like=true</p>
+
+    <h2>Example return:</h2>
+    <p><code>{"stockData":{"stock":"GOOG","price":786.90,"likes":1}}</code></p>
+    <p><code>{"stockData":[{"stock":"MSFT","price":62.30,"rel_likes":-1},{"stock":"GOOG","price":786.90,"rel_likes":1}]}</code></p>
+
+    <hr>
+
+    <h2>Front-End:</h2>
+
+    <h3>Get single price and total likes</h3>
+    <form id="singleStockForm">
+        <input type="text" id="singleStockInput" placeholder="GOOG" required>
+        <input type="checkbox" id="singleStockLike"> Like?
+        <button type="submit">Get Price!</button>
+    </form>
+    <p id="singleStockResult"></p>
+
+    <hr>
+
+    <h3>Compare and get relative likes</h3>
+    <form id="compareStocksForm">
+        <input type="text" id="compareStock1Input" placeholder="GOOG" required>
+        <input type="text" id="compareStock2Input" placeholder="MSFT" required>
+        <input type="checkbox" id="compareStocksLike"> Like both?
+        <button type="submit">Get Price!</button>
+    </form>
+    <p id="compareStocksResult"></p>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
